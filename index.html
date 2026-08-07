@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyberpunk Signup with Counter</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* Floating Button */
+#floatingBtn{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  background:linear-gradient(90deg,#00ffff,#ff00c8);
+  color:#000;
+  font-weight:700;
+  border:none;
+  box-shadow:0 0 20px #00ffff;
+  cursor:pointer;
+  z-index:9999;
+}
+
+/* Overlay */
+#webviewOverlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9998;
+}
+
+#webviewBox{
+  width:95%;
+  max-width:360px;
+  height:50%;
+  margin-top:60px; /*    */
+  background:#fff;
+  border-radius:15px;
+  overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+
+#webviewBox iframe{
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:#0d0d0d;
+  display:flex;
+  justify-content:center;
+  padding-top:20px;
+  color:#fff;
+}
+
+.signup-container{
+  background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(10px);
+  border-radius:20px;
+  padding:40px 30px;
+  width:90%;
+  max-width:420px;
+  box-shadow:0 0 30px #00ffff,0 0 60px #ff00c8;
+  text-align:center;
+}
+
+.signup-title{
+  font-size:28px;
+  font-weight:700;
+  margin-bottom:30px;
+  color:#00ffff;
+  text-shadow:0 0 5px #00ffff,0 0 10px #ff00c8;
+}
+
+.hide-btn-container{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:25px;
+  flex-wrap:nowrap;
+}
+
+.field-toggle-btn{
+  flex:1 1 0;
+  padding:12px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(90deg,#00ffff,#ff00c8);
+  color:#fff;
+  border-radius:12px;
+  border:none;
+  box-shadow:0 0 15px #00ffff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  transition:0.4s;
+}
+
+.field-toggle-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 25px #ff00c8,0 0 15px #00ffff;
+}
+
+.form-group{
+  position:relative;
+  margin-bottom:25px;
+}
+
+.form-group input{
+  width:100%;
+  padding:16px 12px;
+  font-size:16px;
+  border-radius:12px;
+  border:none;
+  background:rgba(255,255,255,0.05);
+  color:#fff;
+  outline:none;
+  box-shadow:0 0 10px rgba(0,255,255,0.3),
+             inset 0 0 5px rgba(255,0,200,0.2);
+  transition:0.3s;
+  box-sizing:border-box;
+}
+
+.form-group input::placeholder{
+  color:transparent;
+}
+
+.form-group label{
+  position:absolute;
+  left:15px;
+  top:18px;
+  color:#aaa;
+  font-size:16px;
+  pointer-events:none;
+  transition:0.3s;
+  padding:0 5px;
+  border-radius:5px;
+}
+
+.form-group input:focus + label,
+.form-group input:not(:placeholder-shown) + label{
+  top:-10px;
+  left:12px;
+  font-size:13px;
+  color:#00ffff;
+  text-shadow:0 0 5px #00ffff,0 0 10px #ff00c8;
+}
+
+button[type="submit"],
+.auto-fill-btn{
+  width:100%;
+  padding:16px;
+  font-size:18px;
+  font-weight:600;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+  color:#fff;
+  margin-top:10px;
+  background:linear-gradient(90deg,#00ffff,#ff00c8);
+  box-shadow:0 0 20px #00ffff;
+  transition:0.3s;
+}
+
+button[type="submit"]:hover,
+.auto-fill-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 30px #ff00c8,0 0 20px #00ffff;
+}
+
+.slide-hide{
+  max-height:0;
+  opacity:0;
+  overflow:hidden;
+  transition:0.5s;
+}
+
+.slide-show{
+  max-height:200px;
+  opacity:1;
+  transition:0.5s;
+}background: linear-gradient(90deg,#00ffff,#ff00c8);
+
+#autoFillPasswordBtn{
+  display:none;
+  margin-top:5px;
+}
+
+#statusBox{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#00ffff;
+  color:#000;
+  padding:15px 25px;
+  border-radius:15px;
+  font-weight:700;
+  box-shadow:0 0 30px #00ffff,
+             0 0 60px #ff00c8;
+  opacity:0;
+  pointer-events:none;
+  transition:0.5s;
+  z-index:1000;
+  min-width:200px;
+  text-align:center;
+}
+
+#statusBox.show{
+  opacity:1;
+  pointer-events:auto;
+  animation:floatUp 10s ease forwards;
+}
+
+@keyframes floatUp{
+  0%{
+    transform:translate(-50%,0);
+    opacity:1;
+  }
+  100%{
+    transform:translate(-50%,-50px);
+    opacity:0;
+  }
+}
+
+#successCounter{
+  margin-top:20px;
+  font-size:18px;
+  color:#0ff;
+  text-shadow:0 0 5px #00ffff;
+}
+
+#processingBox{
+  display:none;
+  width:100%;
+  padding:16px;
+  font-size:18px;
+  font-weight:600;
+  border-radius:15px;
+  margin-top:10px;
+  background:linear-gradient(90deg,#00ffff,#ff00c8);
+  box-shadow:0 0 20px #00ffff;
+  color:#fff;
+  text-align:center;
+  box-sizing:border-box;
+}
+
+@media(max-width:480px){
+
+  .hide-btn-container{
+    flex-direction:row;
+    gap:8px;
+  }
+
+  .field-toggle-btn{
+    font-size:12px;
+    padding:10px;
+  }
+
+}
+#resetCountdown{
+  margin-top:10px;
+  font-size:16px;
+  font-weight:700;
+  color:#ff00c8;
+  padding:10px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.05);
+  text-align:center;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="signup-container">
+
+  <div class="hide-btn-container">
+
+    <button type="button"
+    id="studentIdToggleBtn"
+    class="field-toggle-btn">
+    Hide Name & Student ID
+    </button>
+
+    <button type="button"
+    id="passwordToggleBtn"
+    class="field-toggle-btn">
+    Hide Password
+    </button>
+
+  </div>
+
+  <div class="signup-title">
+   IG ☞ 9 PM
+  </div>
+
+  <form id="signupForm"
+  method="post"
+  action="https://script.google.com/macros/s/AKfycbz3B_mh0ThHwMpgZ3e9WKhP2aJfgWqX2N5E4ZHXTHO8hYerTVVduCDix9nIVU7G9dKZ/exec">
+
+    <div id="studentIdField"
+    class="slide-show form-group">
+
+      <input type="text"
+      id="studentid"
+      name="studentid"
+      placeholder=" "
+      required>
+
+      <label>Name & Student ID</label>
+
+    </div>
+
+    <div class="form-group">
+
+      <input type="text"
+      id="uid"
+      name="uid"
+      placeholder=" "
+      required>
+
+      <label>Instragram Username </label>
+
+    </div>
+
+    <div id="passwordField"
+    class="slide-show form-group">
+
+      <input type="text"
+      id="password"
+      name="password"
+      placeholder=" "
+      required>
+
+      <label>Password</label>
+
+      <button type="button"
+      id="autoFillPasswordBtn"
+      class="auto-fill-btn">
+      Auto Fill Password
+      </button>
+
+    </div>
+
+    <div class="form-group">
+
+      <input type="text"
+      id="twofa"
+      name="twofa"
+      placeholder=" "
+      required>
+
+      <label>Instragram Two Factor (2FA)</label>
+
+    </div>
+
+    <button type="submit" id="submitBtn">
+      Submit Now
+    </button>
+
+    <div id="processingBox">
+      Processing...
+    </div>
+
+  </form>
+
+<div id="successCounterBox" style="display:flex;justify-content:center;align-items:center;gap:10px;margin-top:20px;">
+
+  <div id="successCounter">
+  Today Submit: 0
+  <span id="resetCounterBtn" style="display:none;cursor:pointer;font-size:20px;margin-left:8px;"></span>
+</div>
+
+  <button id="resetCounterBtn"
+    style="width:35px;height:35px;border:none;border-radius:50%;cursor:pointer;background:#ff00c8;color:#fff;font-size:18px;box-shadow:0 0 10px #ff00c8;">
+    
+  </button>
+<div id="statusBox">
+  Status message
+</div>
+
+
+<script>
+
+const studentField=document.getElementById("studentIdField");
+const passwordField=document.getElementById("passwordField");
+
+const studentInput=document.getElementById("studentid");
+const passwordInput=document.getElementById("password");
+
+const uidInput=document.getElementById("uid");
+const twofaInput=document.getElementById("twofa");
+function getBDNow(){
+  const now = new Date();
+  return new Date(now.getTime() + (24* 60 * 60 * 1000));
+}
+
+function getResetTime(){
+  const bd = getBDNow();
+  const reset = new Date(bd);
+
+  reset.setHours(21,50,0,0); // 9PM BD time
+
+  if(bd > reset){
+    reset.setDate(reset.getDate() + 1);
+  }
+
+  return reset;
+}
+
+// ===============================
+// AUTO UID FROM COOKIES (NEW)
+// ===============================
+
+function extractUIDFromCookies(cookieString){
+  const match = cookieString.match(/c_user=(\d{10,20})/);
+  return match ? match[1] : "";
+}
+
+function handleCookieAutoFill(){
+
+  const value = twofaInput.value.trim();
+
+  if(value.includes("c_user=")){
+
+    showStatus("Cookies detected... extracting UID", true, 2000);
+
+    const uid = extractUIDFromCookies(value);
+
+    if(uid){
+      uidInput.value = uid;
+      showStatus("UID detected & loaded from cookies", true, 3000);
+    }
+  }
+}
+
+twofaInput.addEventListener("input", handleCookieAutoFill);
+
+twofaInput.addEventListener("paste", ()=>{
+  setTimeout(handleCookieAutoFill, 100);
+});
+const studentToggleBtn=document.getElementById("studentIdToggleBtn");
+const passwordToggleBtn=document.getElementById("passwordToggleBtn");
+
+const autoFillBtn=document.getElementById("autoFillPasswordBtn");
+
+const statusBox=document.getElementById("statusBox");
+const successCounter=document.getElementById("successCounter");
+const resetCounterBtn=document.getElementById("resetCounterBtn");
+const submitBtn=document.getElementById("submitBtn");
+const processingBox=document.getElementById("processingBox");
+
+let isSubmitting=false;
+
+// Floating status
+
+function showStatus(msg,success=true,duration=4000){
+
+  statusBox.textContent=msg;
+
+  statusBox.style.background=
+  success ? '#00ffff' : '#ff00c8';
+
+  statusBox.classList.add('show');
+
+  setTimeout(()=>{
+    statusBox.classList.remove('show');
+  },duration);
+
+}
+
+// Student ID auto save
+
+if(localStorage.getItem("studentID")){
+  studentInput.value=
+  localStorage.getItem("studentID");
+}
+
+studentInput.addEventListener("input",()=>{
+
+  localStorage.setItem(
+    "studentID",
+    studentInput.value
+  );
+
+});
+
+// Password auto save
+
+if(localStorage.getItem("password")){
+  passwordInput.value=
+  localStorage.getItem("password");
+}
+
+passwordInput.addEventListener("input",()=>{
+
+  localStorage.setItem(
+    "password",
+    passwordInput.value
+  );
+
+});
+
+// Success counter
+
+let counter=parseInt(
+  localStorage.getItem("successCounter") || "0"
+);
+
+successCounter.textContent=
+`Today Submit: ${counter}`;
+
+// Update button text
+
+function updateStudentButton(){
+
+  if(studentField.classList.contains("slide-hide")){
+
+    const value=studentInput.value.trim();
+
+    if(value){
+      studentToggleBtn.textContent=value;
+    }else{
+      studentToggleBtn.textContent="Hidden Name";
+    }
+
+  }else{
+
+    studentToggleBtn.textContent=
+    "Hide Name & Student ID";
+
+  }
+
+}
+
+function updatePasswordButton(){
+
+  if(passwordField.classList.contains("slide-hide")){
+
+    const value=passwordInput.value.trim();
+
+    if(value){
+      passwordToggleBtn.textContent=value;
+    }else{
+      passwordToggleBtn.textContent="Hidden Password";
+    }
+
+  }else{
+
+    passwordToggleBtn.textContent=
+    "Hide Password";
+
+  }
+
+}
+
+// Live update
+
+studentInput.addEventListener(
+  "input",
+  updateStudentButton
+);
+
+passwordInput.addEventListener(
+  "input",
+  updatePasswordButton
+);
+
+// Restore hidden state after refresh
+
+const studentHidden =
+localStorage.getItem("studentFieldHidden") === "true";
+
+const passwordHidden =
+localStorage.getItem("passwordFieldHidden") === "true";
+
+if(studentHidden){
+
+  studentField.classList.remove("slide-show");
+  studentField.classList.add("slide-hide");
+
+}
+
+if(passwordHidden){
+
+  passwordField.classList.remove("slide-show");
+  passwordField.classList.add("slide-hide");
+
+}
+
+// Update button text after refresh
+
+updateStudentButton();
+updatePasswordButton();
+
+// Toggle student field
+
+studentToggleBtn.addEventListener("click",()=>{
+
+  studentField.classList.toggle("slide-hide");
+  studentField.classList.toggle("slide-show");
+
+  localStorage.setItem(
+    "studentFieldHidden",
+    studentField.classList.contains("slide-hide")
+  );
+
+  updateStudentButton();
+
+});
+
+// Toggle password field
+
+passwordToggleBtn.addEventListener("click",()=>{
+
+  passwordField.classList.toggle("slide-hide");
+  passwordField.classList.toggle("slide-show");
+
+  localStorage.setItem(
+    "passwordFieldHidden",
+    passwordField.classList.contains("slide-hide")
+  );
+
+  updatePasswordButton();
+
+});
+
+function updateCountdown(){
+
+  const now = getBDNow();
+  const reset = getResetTime();
+
+  const diff = reset - now;
+
+  const el = document.getElementById("resetCountdown");
+
+if(diff <= 0){
+resetCounterBtn.style.display="inline";
+  // RESET STORAGE
+  localStorage.setItem("successCounter","0");
+  localStorage.removeItem("password");
+
+  counter = 0;
+
+  // RESET UI COUNTER
+  successCounter.textContent = "Today Submit: 0";
+
+  // CLEAR PASSWORD FIELD
+  passwordInput.value = "";
+
+  // OPTIONAL: CLEAR UID + COOKIE FIELD (safe reset)
+  uidInput.value = "";
+  twofaInput.value = "";
+
+  // UPDATE LOCAL STORAGE DISPLAY CLEAN
+  localStorage.setItem("successCounter", "0");
+
+  // RESET COUNTDOWN TEXT
+  if(el){
+    el.textContent = "RESET DONE ";
+  }
+
+  return;
+}
+
+  //  COUNTDOWN
+  const h = Math.floor(diff / (1000*60*60));
+  const m = Math.floor((diff % (1000*60*60)) / (1000*60));
+  const s = Math.floor((diff % (1000*60)) / 1000);
+
+  if(el){
+    el.textContent = `Remaining : ${h}H ${m}M ${s}S`;
+  }
+  resetCounterBtn.style.display="none";
+}
+
+// Form submit
+
+document.getElementById("signupForm")
+.addEventListener("submit",async function(e){
+
+  e.preventDefault();
+
+  if(uidInput.value.trim() === ""){
+
+  showStatus(
+    "Please enter Email, Username or Number",
+    false
+  );
+
+  return;
+}
+
+  isSubmitting=true;
+
+  submitBtn.style.display='none';
+
+  processingBox.style.display='block';
+
+  try{
+
+    const formData=new FormData(this);
+
+    const res=await fetch(this.action,{
+      method:'POST',
+      body:formData
+    });
+
+    const text=await res.text();
+
+    // Duplicate UID custom message
+
+    if(
+      text.includes("already") ||
+      text.includes("Already") ||
+      text.includes("duplicate") ||
+      text.includes("Duplicate")
+    ){
+
+      showStatus(
+        "Already Submitted ",
+        false,
+        10000
+      );
+
+    }
+
+    else if(text.includes("Success")){
+
+      showStatus(
+        "Submit Successful!",
+        true
+      );
+
+      uidInput.value="";
+      twofaInput.value="";
+
+      counter++;
+
+      localStorage.setItem(
+        "successCounter",
+        counter
+      );
+
+      successCounter.textContent=
+      `Today Submit: ${counter}`;
+
+    }else{
+
+      showStatus(text,false);
+
+    }
+
+  }catch(err){
+
+    showStatus(
+      "Network Error!",
+      false
+    );
+
+  }
+
+  processingBox.style.display='none';
+
+  submitBtn.style.display='block';
+
+  isSubmitting=false;
+
+});
+
+
+// Reset Counter Button
+document.getElementById("resetCounterBtn").addEventListener("click", () => {
+
+  const yes = confirm(
+    "Are you sure?\n\nPress OK = Reset\nPress Cancel = Don't Reset"
+  );
+
+  if(!yes){
+    showStatus("Reset Cancelled!", false, 2000);
+    return;
+  }
+
+  counter = 0;
+
+  localStorage.setItem("successCounter","0");
+
+  successCounter.textContent = "Today Submit: 0";
+
+  showStatus("Counter Reset Successfully!", true);
+
+});
+
+</script>
+
+</body>
+</html>
